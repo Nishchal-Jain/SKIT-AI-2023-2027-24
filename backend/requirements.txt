@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+pandas
+numpy
+xgboost
+prophet
+shap
+motor
+requests
+pytest
+scipy
