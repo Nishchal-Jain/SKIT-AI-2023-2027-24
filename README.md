@@ -31,16 +31,17 @@
 7. [Data Engineering & Ingestion Pipeline Specifications](#7-data-engineering--ingestion-pipeline-specifications)
 8. [Machine Learning Architectures (XGBoost & Prophet)](#8-machine-learning-architectures-xgboost--prophet)
 9. [ARAI Multi-Modal Emission Equations & Calculations](#9-arai-multi-modal-emission-equations--calculations)
-10. [Explainable AI (SHAP) Diagnostics](#10-explainable-ai-shap-diagnostics)
-11. [API REST Gateway Specifications & OpenAPI Schemas](#11-api-rest-gateway-specifications--openapi-schemas)
-12. [Frontend Architecture & React Component Tree](#12-frontend-architecture--react-component-tree)
-13. [Automated Weekly Progress Report System (Form-3 PDF)](#13-automated-weekly-progress-report-system-form-3-pdf)
-14. [Git Branching & 1–2 Week Merge Protocol](#14-git-branching--12-week-merge-protocol)
-15. [Environment Variables & Security Configuration](#15-environment-variables--security-configuration)
-16. [Step-by-Step Local Setup & Installation Guide](#16-step-by-step-local-setup--installation-guide)
-17. [Developer Guidelines & Modular Interface Contracts](#17-developer-guidelines--modular-interface-contracts)
-18. [Verification, Testing & Benchmarking Suite](#18-verification-testing--benchmarking-suite)
-19. [Troubleshooting & Frequently Asked Questions](#19-troubleshooting--frequently-asked-questions)
+10. [System Technical Deep Dive](#10-system-technical-deep-dive)
+11. [Explainable AI (SHAP) Diagnostics](#11-explainable-ai-shap-diagnostics)
+12. [API REST Gateway Specifications & OpenAPI Schemas](#12-api-rest-gateway-specifications--openapi-schemas)
+13. [Frontend Architecture & React Component Tree](#13-frontend-architecture--react-component-tree)
+14. [Automated Weekly Progress Report System (Form-3 PDF)](#14-automated-weekly-progress-report-system-form-3-pdf)
+15. [Git Branching & 1–2 Week Merge Protocol](#15-git-branching--12-week-merge-protocol)
+16. [Environment Variables & Security Configuration](#16-environment-variables--security-configuration)
+17. [Step-by-Step Local Setup & Installation Guide](#17-step-by-step-local-setup--installation-guide)
+18. [Developer Guidelines & Modular Interface Contracts](#18-developer-guidelines--modular-interface-contracts)
+19. [Verification, Testing & Benchmarking Suite](#19-verification-testing--benchmarking-suite)
+20. [Troubleshooting & Frequently Asked Questions](#20-troubleshooting--frequently-asked-questions)
 
 ---
 
@@ -151,8 +152,15 @@ smart-sustainable-transport/
 │   │   ├── services/
 │   │   │   ├── emission_calculator.py   # ARAI speed-dependent emission formulas
 │   │   │   ├── weather_service.py       # OpenWeather API integration
-│   │   │   └── routing_service.py       # OSRM distance matrix wrapper
+│   │   │   ├── gtfs_parser.py           # GTFS data loader and shape extraction
+│   │   │   └── routing_service.py       # OSRM distance matrix & spatial snapping
 │   │   └── main.py                      # FastAPI app entry point & CORS configuration
+│   ├── data/
+│   │   ├── raw/
+│   │   │   ├── bangalore_traffic_pulse.csv
+│   │   │   ├── gtfs_metro/              # BMRCL Namma Metro (stops.txt, routes.txt, shapes.txt)
+│   │   │   └── gtfs_bmtc/               # BMTC Bus (stops.txt, routes.txt, shapes.txt)
+│   │   └── processed/                   # Feature-engineered training vectors
 │   ├── tests/                           # PyTest test suite
 │   ├── .env.example                     # Environment template for backend
 │   └── requirements.txt                 # Python dependencies
@@ -209,6 +217,21 @@ smart-sustainable-transport/
 
 ## 7. 📊 Data Engineering & Ingestion Pipeline Specifications
 
+### 7.1 Bangalore Traffic Pulse Dataset
+Historical speed, travel duration, and congestion indices for XGBoost & Prophet models.
+
+### 7.2 Namma Metro GTFS Static Feed (`gtfs_metro`)
+Station coordinates (`stops.txt`) for spatial snapping and track polylines (`shapes.txt`) for Leaflet map rendering.
+
+### 7.3 BMTC Bus GTFS Static Feed (`gtfs_bmtc`)
+Bengaluru bus stop GPS nodes and corridor shapes for multi-modal transit comparison.
+
+### 7.4 OpenWeather API Telemetry
+Live rainfall volume %, visibility, and temperature feeds.
+
+### 7.5 OpenStreetMap / OSRM Engine
+Base driving distance matrices and road geometry polylines.
+
 ### Feature Preprocessing Code Implementation
 ```python
 import pandas as pd
@@ -264,7 +287,17 @@ $$EF_{CO2}(v) = \alpha + \frac{\beta}{v} + \gamma \cdot v^2$$
 
 ---
 
-## 10. 🔍 Explainable AI (SHAP) Diagnostics
+## 10. ⚙️ System Technical Deep Dive
+
+### 10.1 Spatial Snapping Engine (`routing_service.py` / `gtfs_parser.py`)
+To efficiently map origin and destination coordinates to the nearest public transit nodes, the system implements a high-performance spatial snapping engine using `scipy.spatial.cKDTree`. By building a k-d tree from the exact GPS nodes located in `stops.txt` (from both the BMRCL Metro and BMTC Bus GTFS static feeds), the backend can resolve nearest-neighbor lookups in `<2ms`, ensuring instantaneous multi-modal routing comparisons.
+
+### 10.2 Polyline Extraction & Map Rendering
+Accurate visualization of transit corridors is critical for user pre-trip evaluation. The `gtfs_parser.py` extracts geographic shape sequences from `shapes.txt` corresponding to specific metro lines and bus routes. These sequence coordinates are parsed, sorted, and transmitted as GeoJSON polyline layers via the REST API to the React frontend, where they are dynamically rendered onto Leaflet maps.
+
+---
+
+## 11. 🔍 Explainable AI (SHAP) Diagnostics
 
 TreeSHAP computes exact Shapley values to explain prediction $f(x)$ relative to expected base value $E[f(X)]$:
 
@@ -287,7 +320,7 @@ def generate_shap_explanation(model, feature_matrix):
 
 ---
 
-## 11. 🌐 API REST Gateway Specifications & OpenAPI Schemas
+## 12. 🌐 API REST Gateway Specifications & OpenAPI Schemas
 
 ### Route Recommendation Endpoint
 * **URL:** `POST /api/v1/recommend-route`
@@ -334,7 +367,7 @@ def generate_shap_explanation(model, feature_matrix):
 
 ---
 
-## 12. 🖥️ Frontend Architecture & React Component Tree
+## 13. 🖥️ Frontend Architecture & React Component Tree
 
 The frontend is built using React.js, Tailwind CSS, Leaflet.js, and Plotly.js.
 
@@ -349,7 +382,7 @@ App.jsx (Main Dashboard)
 
 ---
 
-## 13. 🤖 Automated Weekly Progress Report System (Form-3 PDF)
+## 14. 🤖 Automated Weekly Progress Report System (Form-3 PDF)
 
 To satisfy SKIT Jaipur academic monitoring requirements, the repository includes an automated reporting pipeline:
 * **Script:** `generate_report.py` at the repository root parses Git commit history via `git log`.
@@ -358,7 +391,7 @@ To satisfy SKIT Jaipur academic monitoring requirements, the repository includes
 
 ---
 
-## 14. 🔀 Git Branching & 1–2 Week Merge Protocol
+## 15. 🔀 Git Branching & 1–2 Week Merge Protocol
 
 1. **`main`**: Protected branch containing clean, verified production code.
 2. **`backend-dev`**: Dedicated working branch for Nishchal Jain (`/backend`).
@@ -367,7 +400,7 @@ To satisfy SKIT Jaipur academic monitoring requirements, the repository includes
 
 ---
 
-## 15. 🔐 Environment Variables & Security Configuration
+## 16. 🔐 Environment Variables & Security Configuration
 
 Create a `.env` file in `/backend` (never commit this file to Git):
 
@@ -382,7 +415,7 @@ CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 
 ---
 
-## 16. 🚀 Step-by-Step Local Setup & Installation Guide
+## 17. 🚀 Step-by-Step Local Setup & Installation Guide
 
 ### Backend Setup
 ```bash
@@ -402,21 +435,21 @@ npm run dev
 
 ---
 
-## 17. 📐 Developer Guidelines & Modular Interface Contracts
+## 18. 📐 Developer Guidelines & Modular Interface Contracts
 
-### 17.1 Monorepo Interface Boundaries
+### 18.1 Monorepo Interface Boundaries
 To ensure clean collaboration between backend and frontend modules without code duplication or file collisions:
 * **Directory Scoping:** Backend engineers work exclusively within `/backend` and root configuration scripts. Frontend engineers work exclusively within `/frontend`.
-* **API Schema Locking:** Any modifications to REST request/response structures in `app/api/endpoints.py` MUST be updated in Section 11 of this README before implementation.
+* **API Schema Locking:** Any modifications to REST request/response structures in `app/api/endpoints.py` MUST be updated in Section 12 of this README before implementation.
 * **Shared Types & Constants:** Data field names (e.g., `co2_emissions_kg`, `duration_min`, `shap_explanation`) MUST remain identical across FastAPI Pydantic schemas and React Axios service calls.
 
-### 17.2 Code Style & Quality Standards
+### 18.2 Code Style & Quality Standards
 * **Python (Backend):** Follow PEP 8 guidelines. Use explicit type hints for all function signatures and Pydantic models for request/response serialization.
 * **JavaScript/React (Frontend):** Follow modern ES6+ functional component standards using React Hooks (`useState`, `useEffect`). Utilize Tailwind CSS utility classes for styling.
 
 ---
 
-## 18. 🧪 Verification, Testing & Benchmarking Suite
+## 19. 🧪 Verification, Testing & Benchmarking Suite
 
 ### PyTest Suite Execution
 ```bash
@@ -447,7 +480,7 @@ if __name__ == "__main__":
 
 ---
 
-## 19. ❓ Troubleshooting & Frequently Asked Questions
+## 20. ❓ Troubleshooting & Frequently Asked Questions
 
 * **Q: What happens if OpenWeather API times out?**
   * *A:* The backend service automatically catches connection timeouts and falls back to historical seasonal weather averages stored in `app/services/weather_service.py`.
