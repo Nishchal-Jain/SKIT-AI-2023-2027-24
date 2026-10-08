@@ -26,22 +26,23 @@
 2. [Core Innovation & System Architecture](#2-core-innovation--system-architecture)
 3. [Technology Stack Specification Matrix](#3-technology-stack-specification-matrix)
 4. [Complete Monorepo Directory Layout](#4-complete-monorepo-directory-layout)
-5. [Detailed Developer Work Distribution & Form 2 Allocation](#5-detailed-developer-work-distribution--form-2-allocation)
-6. [System Requirements Specification (FRs & NFRs)](#6-system-requirements-specification-frs--nfrs)
-7. [Data Engineering & Ingestion Pipeline Specifications](#7-data-engineering--ingestion-pipeline-specifications)
-8. [Machine Learning Architectures (XGBoost & Prophet)](#8-machine-learning-architectures-xgboost--prophet)
-9. [ARAI Multi-Modal Emission Equations & Calculations](#9-arai-multi-modal-emission-equations--calculations)
-10. [System Technical Deep Dive](#10-system-technical-deep-dive)
-11. [Explainable AI (SHAP) Diagnostics](#11-explainable-ai-shap-diagnostics)
-12. [API REST Gateway Specifications & OpenAPI Schemas](#12-api-rest-gateway-specifications--openapi-schemas)
-13. [Frontend Architecture & React Component Tree](#13-frontend-architecture--react-component-tree)
-14. [Automated Weekly Progress Report System (Form-3 PDF)](#14-automated-weekly-progress-report-system-form-3-pdf)
-15. [Git Branching & 1–2 Week Merge Protocol](#15-git-branching--12-week-merge-protocol)
-16. [Environment Variables & Security Configuration](#16-environment-variables--security-configuration)
-17. [Step-by-Step Local Setup & Installation Guide](#17-step-by-step-local-setup--installation-guide)
-18. [Developer Guidelines & Modular Interface Contracts](#18-developer-guidelines--modular-interface-contracts)
-19. [Verification, Testing & Benchmarking Suite](#19-verification-testing--benchmarking-suite)
-20. [Troubleshooting & Frequently Asked Questions](#20-troubleshooting--frequently-asked-questions)
+5. [Official Project Sprints (Form 1)](#5-official-project-sprints-form-1)
+6. [Official Timelines & Tasks (Form 2)](#6-official-timelines--tasks-form-2)
+7. [System Requirements Specification (FRs & NFRs)](#7-system-requirements-specification-frs--nfrs)
+8. [Data Engineering & Ingestion Pipeline Specifications](#8-data-engineering--ingestion-pipeline-specifications)
+9. [Machine Learning Architectures (XGBoost & Prophet)](#9-machine-learning-architectures-xgboost--prophet)
+10. [ARAI Multi-Modal Emission Equations & Calculations](#10-arai-multi-modal-emission-equations--calculations)
+11. [System Technical Deep Dive](#11-system-technical-deep-dive)
+12. [Explainable AI (SHAP) Diagnostics](#12-explainable-ai-shap-diagnostics)
+13. [API REST Gateway Specifications & OpenAPI Schemas](#13-api-rest-gateway-specifications--openapi-schemas)
+14. [Frontend Architecture & React Component Tree](#14-frontend-architecture--react-component-tree)
+15. [Automated Weekly Progress Report System (Form-3 PDF)](#15-automated-weekly-progress-report-system-form-3-pdf)
+16. [Git Branching & 1–2 Week Merge Protocol](#16-git-branching--12-week-merge-protocol)
+17. [Environment Variables & Security Configuration](#17-environment-variables--security-configuration)
+18. [Step-by-Step Local Setup & Installation Guide](#18-step-by-step-local-setup--installation-guide)
+19. [Developer Guidelines & Modular Interface Contracts](#19-developer-guidelines--modular-interface-contracts)
+20. [Verification, Testing & Benchmarking Suite](#20-verification-testing--benchmarking-suite)
+21. [Troubleshooting & Frequently Asked Questions](#21-troubleshooting--frequently-asked-questions)
 
 ---
 
@@ -185,20 +186,58 @@ smart-sustainable-transport/
 
 ---
 
-## 5. 👥 Detailed Developer Work Distribution & Form 2 Allocation
+## 5. 🏃 Official Project Sprints (Form 1)
 
-### 5.1 Nishchal Jain (Team Lead – Backend, AI & Cloud)
-* **Sprint 1 (Aug 10 – Sep 18, 2026):** Ingestion & cleaning of Bangalore traffic dataset; OpenWeather API client setup; baseline XGBoost model setup.
-* **Sprint 2 (Sep 19 – Oct 28, 2026):** Prophet model tuning for 2-hour traffic forecasting; ARAI emission calculation formulas implementation.
-* **Sprint 3 (Oct 29 – Dec 08, 2026):** TreeSHAP explainability engine; FastAPI REST endpoints setup; MongoDB Atlas connection for trip logging.
-
-### 5.2 Tanvi Sharma (Team Member 1 – Frontend, UI/UX & Maps)
-* **Sprint 4 (Dec 09, 2026 – Jan 18, 2027):** Responsive dashboard layout in React.js & Tailwind CSS; Leaflet.js map integration with OSRM routing.
-* **Sprint 5 (Jan 19 – Feb 25, 2027):** Plotly SHAP explanation charts; full API integration with FastAPI; final testing & submission prep.
+* **Sprint 1 (Data & ML Pipeline):** Gather traffic & weather datasets, Clean data & handle missing values, Build Feature Engineering Pipeline, Establish FastAPI server & routes, Train XGBoost/LightGBM models, Optimize model hyperparameters.
+* **Sprint 2 (Emissions & Logic):** Code speed-emission curves, Configure Prophet for time-series, Build multi-criteria scoring logic, Integrate SHAP explainer pipeline.
+* **Sprint 3 (Backend API & Testing):** Create FastAPI endpoints for UI, Integrate MongoDB Atlas for logs, Conduct backend latency testing, Deploy backend to cloud server.
+* **Sprint 4 (UI Architecture & Maps):** Setup React & Tailwind layout, Integrate OSRM API base routing, Implement Leaflet.js maps, Develop Input Routing Form UI.
+* **Sprint 5 (Data Viz & Deployment):** Build traffic polyline logic, Design Multi-Modal transit cards, Render Prophet forecast charts, Develop SHAP analysis charts, Full-Stack Deployment with Nishchal Jain.
 
 ---
 
-## 6. 📋 System Requirements Specification (FRs & NFRs)
+## 6. 📅 Official Timelines & Tasks (Form 2)
+
+### 6.1 Nishchal Jain (Team Lead - Backend, AI & Deployment)
+
+**Sprint 1: Data & ML Pipeline**
+* **10-08-2026 to 22-08-2026:** Will download Bangalore Traffic Pulse and merge weather API data.
+* **23-08-2026 to 10-09-2026:** Will remove invalid entries and normalize time data for traffic analysis.
+* **11-09-2026 to 25-09-2026:** Will build a pipeline to convert raw data into ML feature vectors.
+* **26-09-2026 to 03-10-2026:** Will set up Python backend and configure REST API endpoints.
+* **04-10-2026 to 18-10-2026:** Will train regression models to predict weather/road-based travel times.
+* **19-10-2026 to 31-10-2026:** Will tune learning rates to minimize error and serialize models.
+
+**Sprint 2: Emissions & Logic**
+* **01-11-2026 to 25-11-2026:** Will program ARAI CO2 factors for cars, EVs, buses, and metros.
+* **26-11-2026 to 15-12-2026:** Will deploy Prophet model for 2-hour future traffic forecasting.
+* **16-12-2026 to 02-01-2027:** Will develop recommendation logic for time, cost, and CO2 emissions.
+* **03-01-2027 to 20-01-2027:** Will compute Shapley values to extract delay driver percentages.
+
+**Sprint 3: Backend API & Testing**
+* **21-01-2027 to 06-02-2027:** Will build secure API endpoints for predictions, SHAP, and routes.
+* **07-02-2027 to 20-02-2027:** Will configure MongoDB to store user trips and carbon analytics.
+* **21-02-2027 to 28-02-2027:** Will load-test endpoints to ensure sub-200ms real-time inference.
+* **01-03-2027 to 06-03-2027:** Will host backend on Render and finalize production architecture.
+
+### 6.2 Tanvi Sharma (Member 1 - Frontend, UI/UX & Data Viz)
+
+**Sprint 4: UI Architecture & Maps**
+* **10-08-2026 to 22-08-2026:** Will design responsive dashboard layout and top summary cards.
+* **23-08-2026 to 25-09-2026:** Will fetch route geometry and distances from OpenStreetMap API.
+* **26-09-2026 to 03-10-2026:** Will render interactive Bengaluru map using OSM base tiles.
+* **04-10-2026 to 31-10-2026:** Will build autocomplete search bars for source and destination.
+
+**Sprint 5: Data Viz & Deployment**
+* **01-11-2026 to 05-12-2026:** Will create UI logic for green/yellow/red traffic polylines.
+* **06-12-2026 to 02-01-2027:** Will build UI cards comparing Metro, EV, Bus, and Car CO2 metrics.
+* **03-01-2027 to 06-02-2027:** Will implement Chart.js line graphs for 2-hour traffic predictions.
+* **07-02-2027 to 25-02-2027:** Will use Plotly to render charts explaining AI delay percentages.
+* **26-02-2027 to 06-03-2027:** Will bind UI to backend APIs and deploy React app collaboratively.
+
+---
+
+## 7. 📋 System Requirements Specification (FRs & NFRs)
 
 ### Functional Requirements
 * **FR-001 (Multi-Modal Routing):** System MUST accept origin/destination coordinates and calculate travel metrics across 4 modes: Metro, EV, Bus, ICE Car.
@@ -215,21 +254,21 @@ smart-sustainable-transport/
 
 ---
 
-## 7. 📊 Data Engineering & Ingestion Pipeline Specifications
+## 8. 📊 Data Engineering & Ingestion Pipeline Specifications
 
-### 7.1 Bangalore Traffic Pulse Dataset
+### 8.1 Bangalore Traffic Pulse Dataset
 Historical speed, travel duration, and congestion indices for XGBoost & Prophet models.
 
-### 7.2 Namma Metro GTFS Static Feed (`gtfs_metro`)
+### 8.2 Namma Metro GTFS Static Feed (`gtfs_metro`)
 Station coordinates (`stops.txt`) for spatial snapping and track polylines (`shapes.txt`) for Leaflet map rendering.
 
-### 7.3 BMTC Bus GTFS Static Feed (`gtfs_bmtc`)
+### 8.3 BMTC Bus GTFS Static Feed (`gtfs_bmtc`)
 Bengaluru bus stop GPS nodes and corridor shapes for multi-modal transit comparison.
 
-### 7.4 OpenWeather API Telemetry
+### 8.4 OpenWeather API Telemetry
 Live rainfall volume %, visibility, and temperature feeds.
 
-### 7.5 OpenStreetMap / OSRM Engine
+### 8.5 OpenStreetMap / OSRM Engine
 Base driving distance matrices and road geometry polylines.
 
 ### Feature Preprocessing Code Implementation
@@ -258,7 +297,7 @@ def preprocess_traffic_data(raw_df: pd.DataFrame) -> pd.DataFrame:
 
 ---
 
-## 8. 🤖 Machine Learning Architectures (XGBoost & Prophet)
+## 9. 🤖 Machine Learning Architectures (XGBoost & Prophet)
 
 ### Travel Time Prediction (XGBoost)
 The travel duration $T_{pred}$ is modeled using an ensemble of decision trees trained on spatial features, distance $D$, historical speed $V$, weather factors $W$, and peak hour indicator $P$:
@@ -272,7 +311,7 @@ $$Y(t) = g(t) + s(t) + h(t) + \beta w(t) + \epsilon_t$$
 
 ---
 
-## 9. 🍃 ARAI Multi-Modal Emission Equations & Calculations
+## 10. 🍃 ARAI Multi-Modal Emission Equations & Calculations
 
 Vehicle emissions depend non-linearly on speed $v$ (km/h). The specific $CO_2$ emission factor $EF_{CO2}$ (g/km) is calculated using ARAI standard coefficients:
 
@@ -287,17 +326,17 @@ $$EF_{CO2}(v) = \alpha + \frac{\beta}{v} + \gamma \cdot v^2$$
 
 ---
 
-## 10. ⚙️ System Technical Deep Dive
+## 11. ⚙️ System Technical Deep Dive
 
-### 10.1 Spatial Snapping Engine (`routing_service.py` / `gtfs_parser.py`)
+### 11.1 Spatial Snapping Engine (`routing_service.py` / `gtfs_parser.py`)
 To efficiently map origin and destination coordinates to the nearest public transit nodes, the system implements a high-performance spatial snapping engine using `scipy.spatial.cKDTree`. By building a k-d tree from the exact GPS nodes located in `stops.txt` (from both the BMRCL Metro and BMTC Bus GTFS static feeds), the backend can resolve nearest-neighbor lookups in `<2ms`, ensuring instantaneous multi-modal routing comparisons.
 
-### 10.2 Polyline Extraction & Map Rendering
+### 11.2 Polyline Extraction & Map Rendering
 Accurate visualization of transit corridors is critical for user pre-trip evaluation. The `gtfs_parser.py` extracts geographic shape sequences from `shapes.txt` corresponding to specific metro lines and bus routes. These sequence coordinates are parsed, sorted, and transmitted as GeoJSON polyline layers via the REST API to the React frontend, where they are dynamically rendered onto Leaflet maps.
 
 ---
 
-## 11. 🔍 Explainable AI (SHAP) Diagnostics
+## 12. 🔍 Explainable AI (SHAP) Diagnostics
 
 TreeSHAP computes exact Shapley values to explain prediction $f(x)$ relative to expected base value $E[f(X)]$:
 
@@ -320,7 +359,7 @@ def generate_shap_explanation(model, feature_matrix):
 
 ---
 
-## 12. 🌐 API REST Gateway Specifications & OpenAPI Schemas
+## 13. 🌐 API REST Gateway Specifications & OpenAPI Schemas
 
 ### Route Recommendation Endpoint
 * **URL:** `POST /api/v1/recommend-route`
@@ -367,7 +406,7 @@ def generate_shap_explanation(model, feature_matrix):
 
 ---
 
-## 13. 🖥️ Frontend Architecture & React Component Tree
+## 14. 🖥️ Frontend Architecture & React Component Tree
 
 The frontend is built using React.js, Tailwind CSS, Leaflet.js, and Plotly.js.
 
@@ -382,7 +421,7 @@ App.jsx (Main Dashboard)
 
 ---
 
-## 14. 🤖 Automated Weekly Progress Report System (Form-3 PDF)
+## 15. 🤖 Automated Weekly Progress Report System (Form-3 PDF)
 
 To satisfy SKIT Jaipur academic monitoring requirements, the repository includes an automated reporting pipeline:
 * **Script:** `generate_report.py` at the repository root parses Git commit history via `git log`.
@@ -391,7 +430,7 @@ To satisfy SKIT Jaipur academic monitoring requirements, the repository includes
 
 ---
 
-## 15. 🔀 Git Branching & 1–2 Week Merge Protocol
+## 16. 🔀 Git Branching & 1–2 Week Merge Protocol
 
 1. **`main`**: Protected branch containing clean, verified production code.
 2. **`backend-dev`**: Dedicated working branch for Nishchal Jain (`/backend`).
@@ -400,7 +439,7 @@ To satisfy SKIT Jaipur academic monitoring requirements, the repository includes
 
 ---
 
-## 16. 🔐 Environment Variables & Security Configuration
+## 17. 🔐 Environment Variables & Security Configuration
 
 Create a `.env` file in `/backend` (never commit this file to Git):
 
@@ -415,7 +454,7 @@ CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 
 ---
 
-## 17. 🚀 Step-by-Step Local Setup & Installation Guide
+## 18. 🚀 Step-by-Step Local Setup & Installation Guide
 
 ### Backend Setup
 ```bash
@@ -435,21 +474,21 @@ npm run dev
 
 ---
 
-## 18. 📐 Developer Guidelines & Modular Interface Contracts
+## 19. 📐 Developer Guidelines & Modular Interface Contracts
 
-### 18.1 Monorepo Interface Boundaries
+### 19.1 Monorepo Interface Boundaries
 To ensure clean collaboration between backend and frontend modules without code duplication or file collisions:
 * **Directory Scoping:** Backend engineers work exclusively within `/backend` and root configuration scripts. Frontend engineers work exclusively within `/frontend`.
-* **API Schema Locking:** Any modifications to REST request/response structures in `app/api/endpoints.py` MUST be updated in Section 12 of this README before implementation.
+* **API Schema Locking:** Any modifications to REST request/response structures in `app/api/endpoints.py` MUST be updated in Section 13 of this README before implementation.
 * **Shared Types & Constants:** Data field names (e.g., `co2_emissions_kg`, `duration_min`, `shap_explanation`) MUST remain identical across FastAPI Pydantic schemas and React Axios service calls.
 
-### 18.2 Code Style & Quality Standards
+### 19.2 Code Style & Quality Standards
 * **Python (Backend):** Follow PEP 8 guidelines. Use explicit type hints for all function signatures and Pydantic models for request/response serialization.
 * **JavaScript/React (Frontend):** Follow modern ES6+ functional component standards using React Hooks (`useState`, `useEffect`). Utilize Tailwind CSS utility classes for styling.
 
 ---
 
-## 19. 🧪 Verification, Testing & Benchmarking Suite
+## 20. 🧪 Verification, Testing & Benchmarking Suite
 
 ### PyTest Suite Execution
 ```bash
@@ -480,7 +519,7 @@ if __name__ == "__main__":
 
 ---
 
-## 20. ❓ Troubleshooting & Frequently Asked Questions
+## 21. ❓ Troubleshooting & Frequently Asked Questions
 
 * **Q: What happens if OpenWeather API times out?**
   * *A:* The backend service automatically catches connection timeouts and falls back to historical seasonal weather averages stored in `app/services/weather_service.py`.
