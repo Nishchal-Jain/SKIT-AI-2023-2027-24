@@ -2,10 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
 
+from app.core.config import settings
+
 app = FastAPI(
-    title="Smart Sustainable Transport Optimization API",
+    title=settings.PROJECT_NAME,
     description="AI-Powered Pre-Trip Decision Support System",
-    version="1.0.0"
+    version=settings.VERSION
 )
 
 # Allow CORS for React Frontend (Tanvi's UI)
