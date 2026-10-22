@@ -10,4 +10,5 @@ shap
 motor
 requests
 pytest
+httpx
 scipy
