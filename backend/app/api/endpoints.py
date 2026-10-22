@@ -9,6 +9,7 @@ from app.models.xgboost_predictor import (
     predict_travel_time,
     predict_weather_adjusted_travel_time
 )
+from app.models.model_tuner import get_serialized_model_metrics
 
 router = APIRouter()
 
@@ -222,3 +223,32 @@ async def recommend_route(request: RouteRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class ModelMetricsResponse(BaseModel):
+    status: str
+    model_type: str
+    optimal_hyperparameters: Dict[str, float | int]
+    evaluation_metrics: Dict[str, float]
+    serialized_at: Optional[str] = None
+
+
+@router.get("/model-metrics", response_model=ModelMetricsResponse)
+async def get_model_metrics():
+    """
+    Returns the evaluation metrics, optimal learning rates, 
+    and serialization metadata of the trained XGBoost model.
+    Fulfills Form 2 Milestone (19-10-2026 to 31-10-2026).
+    """
+    try:
+        metrics = get_serialized_model_metrics()
+        return {
+            "status": "success",
+            "model_type": metrics.get("model_type", "XGBoost Regressor"),
+            "optimal_hyperparameters": metrics.get("optimal_hyperparameters", {}),
+            "evaluation_metrics": metrics.get("evaluation_metrics", {}),
+            "serialized_at": metrics.get("serialized_at")
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving model metrics: {str(e)}")
+
