@@ -1,0 +1,68 @@
+{
+  "model_type": "XGBoost Regressor (Hyperparameter Tuned)",
+  "optimal_hyperparameters": {
+    "learning_rate": 0.01,
+    "max_depth": 4,
+    "n_estimators": 150,
+    "subsample": 0.85,
+    "colsample_bytree": 0.85
+  },
+  "evaluation_metrics": {
+    "test_rmse": 2.0107,
+    "test_mae": 1.5739,
+    "r2_score": 0.0207
+  },
+  "learning_rate_sweep": [
+    {
+      "learning_rate": 0.01,
+      "rmse": 2.0119,
+      "mae": 1.5757,
+      "r2": 0.0194
+    },
+    {
+      "learning_rate": 0.03,
+      "rmse": 2.0181,
+      "mae": 1.5768,
+      "r2": 0.0134
+    },
+    {
+      "learning_rate": 0.05,
+      "rmse": 2.0203,
+      "mae": 1.5781,
+      "r2": 0.0112
+    },
+    {
+      "learning_rate": 0.08,
+      "rmse": 2.0207,
+      "mae": 1.5782,
+      "r2": 0.0109
+    },
+    {
+      "learning_rate": 0.1,
+      "rmse": 2.0209,
+      "mae": 1.5783,
+      "r2": 0.0107
+    },
+    {
+      "learning_rate": 0.15,
+      "rmse": 2.0211,
+      "mae": 1.5782,
+      "r2": 0.0105
+    },
+    {
+      "learning_rate": 0.2,
+      "rmse": 2.0212,
+      "mae": 1.5779,
+      "r2": 0.0103
+    }
+  ],
+  "features": [
+    "latitude",
+    "longitude",
+    "hour",
+    "day_of_week",
+    "is_peak_hour"
+  ],
+  "serialized_at": "2026-10-22T16:58:34.748140",
+  "status": "optimized"
+}
