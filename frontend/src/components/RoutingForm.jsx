@@ -385,8 +385,12 @@ export default function RoutingForm({ onRouteCalculated }) {
       setResult(data);
 
       if (onRouteCalculated) {
-        onRouteCalculated(data);
-      }
+  onRouteCalculated({
+    prediction: data,
+    origin: originPlace,
+    destination: destinationPlace,
+  });
+}
     } catch (err) {
       console.error('Route calculation failed:', err);
 
