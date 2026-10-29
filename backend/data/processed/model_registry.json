@@ -1,0 +1,10 @@
+{
+  "model_version": "1.1.0-tuned",
+  "artifact_file": "xgb_baseline.pkl",
+  "sha256_checksum": "c022c97b92887cfff347bd9c2bd15e8de9ebbc4aefdbf58ad0ef2d22b8d28807",
+  "size_bytes": 223348,
+  "n_features_expected": 5,
+  "status": "active_production",
+  "description": "Hyperparameter-tuned XGBoost travel time regressor with minimized RMSE",
+  "registered_at": "2026-10-29T14:53:00.056020"
+}

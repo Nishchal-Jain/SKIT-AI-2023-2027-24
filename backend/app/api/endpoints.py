@@ -1,6 +1,6 @@
 import math
 from datetime import datetime
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
@@ -9,6 +9,8 @@ from app.models.xgboost_predictor import (
     predict_travel_time,
     predict_weather_adjusted_travel_time
 )
+from app.models.model_tuner import get_serialized_model_metrics
+from app.models.model_benchmark import get_benchmark_results
 
 router = APIRouter()
 
@@ -222,3 +224,66 @@ async def recommend_route(request: RouteRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class ModelMetricsResponse(BaseModel):
+    status: str
+    model_type: str
+    optimal_hyperparameters: Dict[str, float | int]
+    evaluation_metrics: Dict[str, float]
+    serialized_at: Optional[str] = None
+
+
+@router.get("/model-metrics", response_model=ModelMetricsResponse)
+async def get_model_metrics():
+    """
+    Returns the evaluation metrics, optimal learning rates, 
+    and serialization metadata of the trained XGBoost model.
+    Fulfills Form 2 Milestone (19-10-2026 to 31-10-2026).
+    """
+    try:
+        metrics = get_serialized_model_metrics()
+        return {
+            "status": "success",
+            "model_type": metrics.get("model_type", "XGBoost Regressor"),
+            "optimal_hyperparameters": metrics.get("optimal_hyperparameters", {}),
+            "evaluation_metrics": metrics.get("evaluation_metrics", {}),
+            "serialized_at": metrics.get("serialized_at")
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving model metrics: {str(e)}")
+
+
+class ModelBenchmarkResponse(BaseModel):
+    status: str
+    benchmark_title: str
+    dataset_rows: int
+    n_splits: int
+    models_evaluated: Dict[str, Dict[str, float]]
+    latency_profile: Dict[str, float | bool]
+    active_model_registry: Dict[str, Any]
+    timestamp: str
+
+
+@router.get("/model-benchmark", response_model=ModelBenchmarkResponse)
+async def get_model_benchmark():
+    """
+    Returns 5-Fold Cross-Validation benchmark comparisons,
+    NFR-001 sub-200ms latency profile, and model artifact SHA-256 verification.
+    """
+    try:
+        data = get_benchmark_results()
+        return {
+            "status": "success",
+            "benchmark_title": data.get("benchmark_title", "5-Fold Cross-Validation Model Comparison"),
+            "dataset_rows": data.get("dataset_rows", 0),
+            "n_splits": data.get("n_splits", 5),
+            "models_evaluated": data.get("models_evaluated", {}),
+            "latency_profile": data.get("latency_profile", {}),
+            "active_model_registry": data.get("active_model_registry", {}),
+            "timestamp": data.get("timestamp", "")
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error executing model benchmark: {str(e)}")
+
+
