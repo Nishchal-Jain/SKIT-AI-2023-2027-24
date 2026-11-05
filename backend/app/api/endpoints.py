@@ -5,6 +5,12 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.services.weather_service import fetch_live_weather
+from app.services.emission_calculator import (
+    calculate_modal_emissions_comparison,
+    generate_speed_emission_curve,
+    compute_all_routes_and_scores,
+    haversine_distance_km
+)
 from app.models.xgboost_predictor import (
     predict_travel_time,
     predict_weather_adjusted_travel_time
@@ -172,41 +178,11 @@ async def recommend_route(request: RouteRequest):
         )
         car_duration = pred["weather_adjusted_travel_time_min"]
         
-        # Dedicated transit mode durations based on Bengaluru kinematics
-        metro_duration = round((distance_km / 35.0) * 60.0 + 5.0, 1)
-        bus_duration = round((distance_km / 18.0) * 60.0 + 3.0, 1)
-        ev_duration = round(car_duration * 0.98, 1)
-
-        routes = [
-            {
-                "mode": "Metro",
-                "duration_min": metro_duration,
-                "co2_emissions_kg": round((distance_km * 12.0) / 1000.0, 2),
-                "estimated_cost_inr": round(min(10.0 + (distance_km * 2.5), 60.0), 2),
-                "recommendation_score": 94.5
-            },
-            {
-                "mode": "Bus",
-                "duration_min": bus_duration,
-                "co2_emissions_kg": round((distance_km * 20.0) / 1000.0, 2),
-                "estimated_cost_inr": round(min(5.0 + (distance_km * 2.0), 35.0), 2),
-                "recommendation_score": 85.0
-            },
-            {
-                "mode": "EV",
-                "duration_min": ev_duration,
-                "co2_emissions_kg": round((distance_km * 123.0) / 1000.0, 2),
-                "estimated_cost_inr": round(distance_km * 3.5, 2),
-                "recommendation_score": 78.0
-            },
-            {
-                "mode": "ICE_Car",
-                "duration_min": car_duration,
-                "co2_emissions_kg": round((distance_km * 156.5) / 1000.0, 2),
-                "estimated_cost_inr": round(distance_km * 11.5, 2),
-                "recommendation_score": 62.0
-            }
-        ]
+        # ARAI Multi-Modal Emission Benchmarking & Multi-Criteria Scoring (Sprint 2)
+        routes = compute_all_routes_and_scores(
+            distance_km=distance_km,
+            road_travel_time_min=car_duration
+        )
 
         shap_explanation = {
             "traffic_density_impact_min": 11.2 if is_peak_hour else 3.4,
@@ -285,5 +261,55 @@ async def get_model_benchmark():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error executing model benchmark: {str(e)}")
+
+
+class EmissionCalculationRequest(BaseModel):
+    distance_km: float = Field(..., gt=0.0, description="Trip distance in kilometers")
+    car_speed_kmh: Optional[float] = Field(25.0, gt=0.0, le=140.0, description="Estimated vehicle speed in km/h")
+
+
+class ModalEmissionDetail(BaseModel):
+    mode: str
+    speed_kmh: float
+    emission_factor_g_km: float
+    co2_emissions_kg: float
+    savings_vs_ice_car_kg: float
+    savings_percentage: float
+
+
+class EmissionCalculationResponse(BaseModel):
+    status: str
+    distance_km: float
+    car_speed_kmh: float
+    baseline_ice_car_co2_kg: float
+    arai_formula: str
+    comparisons: List[ModalEmissionDetail]
+    speed_emission_curve: List[Dict[str, float]]
+
+
+@router.post("/calculate-emissions", response_model=EmissionCalculationResponse)
+async def calculate_emissions(request: EmissionCalculationRequest):
+    """
+    Calculates multi-modal CO2 emissions and carbon savings using ARAI speed-dependent polynomial curves.
+    Fulfills Form 2 Milestone (01-11-2026 to 25-11-2026).
+    """
+    try:
+        results = calculate_modal_emissions_comparison(
+            distance_km=request.distance_km,
+            car_speed_kmh=request.car_speed_kmh or 25.0
+        )
+        curve = generate_speed_emission_curve()
+        return {
+            "status": "success",
+            "distance_km": results["distance_km"],
+            "car_speed_kmh": results["car_speed_kmh"],
+            "baseline_ice_car_co2_kg": results["baseline_ice_car_co2_kg"],
+            "arai_formula": "EF_CO2(v) = 140 + 350/v + 0.02*v^2 (g/km)",
+            "comparisons": results["comparisons"],
+            "speed_emission_curve": curve
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calculating ARAI emissions: {str(e)}")
+
 
 
