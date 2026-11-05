@@ -69,3 +69,23 @@ def test_recommend_route_endpoint_contract():
     assert data["distance_km"] > 0
     assert len(data["routes"]) == 4
     assert "shap_explanation" in data
+
+def test_calculate_emissions_endpoint():
+    payload = {
+        "distance_km": 12.0,
+        "car_speed_kmh": 20.0
+    }
+    response = client.post("/api/v1/calculate-emissions", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["distance_km"] == 12.0
+    assert "baseline_ice_car_co2_kg" in data
+    assert len(data["comparisons"]) == 4
+    assert len(data["speed_emission_curve"]) > 5
+    
+    # Metro and Bus should show positive savings vs ICE car
+    comp_map = {c["mode"]: c for c in data["comparisons"]}
+    assert comp_map["Metro"]["savings_vs_ice_car_kg"] > 0
+    assert comp_map["Metro"]["savings_percentage"] > 90.0
+
