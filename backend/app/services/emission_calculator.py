@@ -52,6 +52,126 @@ def calculate_arai_emission_factor(mode: str, speed_kmh: float) -> float:
     else:
         raise ValueError(f"Unsupported transit mode: {mode}")
 
+def calculate_weather_adjusted_emission_factor(
+    mode: str,
+    speed_kmh: float,
+    rainfall_mm: float = 0.0,
+    temperature_c: float = 25.0
+) -> float:
+    """
+    Adjusts ARAI emission factors for real-world environmental conditions:
+    1. Rainfall increases rolling friction and wiper/defogger auxiliary loads.
+    2. Temperature extremes increase cabin HVAC energy consumption.
+    3. Dedicated electrified Metro remains impervious to wet road friction.
+    """
+    base_factor = calculate_arai_emission_factor(mode, speed_kmh)
+    
+    rain_penalty = 0.0
+    if rainfall_mm > 0.0:
+        if mode == "ICE_Car":
+            rain_penalty = min(rainfall_mm * 0.015, 0.18)
+        elif mode == "EV":
+            rain_penalty = min(rainfall_mm * 0.012, 0.15)
+        elif mode == "Bus":
+            rain_penalty = min(rainfall_mm * 0.008, 0.10)
+        elif mode == "Metro":
+            rain_penalty = 0.0
+            
+    temp_penalty = 0.0
+    if temperature_c > 32.0:
+        # High heat AC load penalty
+        ac_multiplier = min((temperature_c - 32.0) * 0.01, 0.10)
+        if mode in ["ICE_Car", "EV"]:
+            temp_penalty = ac_multiplier
+            
+    total_multiplier = 1.0 + rain_penalty + temp_penalty
+    return round(base_factor * total_multiplier, 2)
+
+def calculate_congestion_emission_penalty(
+    distance_km: float,
+    actual_speed_kmh: float,
+    free_flow_speed_kmh: float = 25.0
+) -> Dict[str, Any]:
+    """
+    Quantifies excess vehicular CO2 emitted purely due to Bengaluru traffic gridlock
+    compared to uninterrupted free-flow urban arterial driving.
+    """
+    safe_dist = max(distance_km, 0.5)
+    actual_ef = calculate_arai_emission_factor("ICE_Car", actual_speed_kmh)
+    free_flow_ef = calculate_arai_emission_factor("ICE_Car", free_flow_speed_kmh)
+    
+    congested_co2_kg = round((safe_dist * actual_ef) / 1000.0, 3)
+    free_flow_co2_kg = round((safe_dist * free_flow_ef) / 1000.0, 3)
+    excess_co2_kg = max(round(congested_co2_kg - free_flow_co2_kg, 3), 0.0)
+    penalty_pct = round(((congested_co2_kg - free_flow_co2_kg) / free_flow_co2_kg) * 100.0, 1) if free_flow_co2_kg > 0 else 0.0
+    
+    return {
+        "distance_km": round(safe_dist, 2),
+        "actual_speed_kmh": round(actual_speed_kmh, 1),
+        "free_flow_speed_kmh": round(free_flow_speed_kmh, 1),
+        "actual_co2_kg": congested_co2_kg,
+        "free_flow_co2_kg": free_flow_co2_kg,
+        "excess_congestion_co2_kg": excess_co2_kg,
+        "congestion_penalty_percentage": penalty_pct
+    }
+
+def calculate_carbon_offset_impact(co2_saved_kg: float) -> Dict[str, float]:
+    """
+    Translates raw carbon reduction (kg CO2) into tangible ecological equivalents:
+    - Urban tree absorption days (average mature tree absorbs ~21.7 kg CO2/year ≈ 0.0595 kg/day).
+    - Petrol fuel saved (liters) at ~2.31 kg CO2/liter.
+    - Smartphone recharge cycles (~8.22 g CO2 per full charge).
+    """
+    safe_saved = max(co2_saved_kg, 0.0)
+    return {
+        "tree_days_equivalent": round(safe_saved / 0.0595, 1),
+        "fuel_saved_liters": round(safe_saved / 2.31, 2),
+        "smartphone_charges_equivalent": round((safe_saved * 1000.0) / 8.22, 0)
+    }
+
+def simulate_commuter_annual_savings(
+    daily_roundtrip_distance_km: float,
+    days_per_week: int = 5,
+    chosen_mode: str = "Metro",
+    car_speed_kmh: float = 25.0
+) -> Dict[str, Any]:
+    """
+    Simulates cumulative weekly, monthly, and annual environmental and financial savings
+    for a commuter choosing sustainable transit over a private ICE car in Bengaluru.
+    """
+    safe_dist = max(daily_roundtrip_distance_km, 1.0)
+    safe_days = max(min(days_per_week, 7), 1)
+    
+    car_ef = calculate_arai_emission_factor("ICE_Car", car_speed_kmh)
+    car_daily_co2 = (safe_dist * car_ef) / 1000.0
+    car_daily_cost = safe_dist * MODAL_PARAMS["ICE_Car"]["per_km_cost"]
+    
+    transit_ef = calculate_arai_emission_factor(chosen_mode, MODAL_PARAMS[chosen_mode].get("speed_kmh", car_speed_kmh))
+    transit_daily_co2 = (safe_dist * transit_ef) / 1000.0
+    transit_daily_cost = calculate_mode_cost(chosen_mode, safe_dist / 2.0) * 2.0 # Round trip
+    
+    daily_co2_saved = max(car_daily_co2 - transit_daily_co2, 0.0)
+    daily_cost_saved = max(car_daily_cost - transit_daily_cost, 0.0)
+    
+    working_weeks = 48 # Standard corporate working weeks per year
+    annual_days = safe_days * working_weeks
+    
+    annual_co2_saved_kg = round(daily_co2_saved * annual_days, 1)
+    annual_cost_saved_inr = round(daily_cost_saved * annual_days, 2)
+    
+    return {
+        "chosen_mode": chosen_mode,
+        "daily_roundtrip_km": round(safe_dist, 2),
+        "working_days_per_week": safe_days,
+        "annual_working_days": annual_days,
+        "weekly_co2_saved_kg": round(daily_co2_saved * safe_days, 2),
+        "monthly_co2_saved_kg": round(daily_co2_saved * safe_days * 4, 2),
+        "annual_co2_saved_kg": annual_co2_saved_kg,
+        "annual_cost_saved_inr": annual_cost_saved_inr,
+        "annual_tree_years_equivalent": round(annual_co2_saved_kg / 21.7, 1),
+        "annual_fuel_liters_saved": round(annual_co2_saved_kg / 2.31, 1)
+    }
+
 def calculate_trip_emissions(mode: str, distance_km: float, speed_kmh: float) -> Dict[str, Any]:
     """
     Calculates total CO2 emissions for a specific mode over a given distance.
@@ -91,7 +211,8 @@ def calculate_modal_emissions_comparison(distance_km: float, car_speed_kmh: floa
             "emission_factor_g_km": round(factor, 2),
             "co2_emissions_kg": co2_kg,
             "savings_vs_ice_car_kg": savings_kg,
-            "savings_percentage": savings_pct
+            "savings_percentage": savings_pct,
+            "ecological_offset": calculate_carbon_offset_impact(savings_kg)
         })
         
     return {
