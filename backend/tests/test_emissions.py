@@ -2,6 +2,10 @@ import pytest
 from app.services.emission_calculator import (
     haversine_distance_km,
     calculate_arai_emission_factor,
+    calculate_weather_adjusted_emission_factor,
+    calculate_congestion_emission_penalty,
+    calculate_carbon_offset_impact,
+    simulate_commuter_annual_savings,
     calculate_trip_emissions,
     calculate_modal_emissions_comparison,
     generate_speed_emission_curve,
@@ -103,3 +107,36 @@ def test_recommendation_scoring_bounds_and_order():
 
     scores = [r["recommendation_score"] for r in routes]
     assert scores == sorted(scores, reverse=True)
+
+def test_weather_adjusted_emission_factor():
+    base_ef = calculate_arai_emission_factor("ICE_Car", 25.0)
+    rainy_ef = calculate_weather_adjusted_emission_factor("ICE_Car", 25.0, rainfall_mm=10.0)
+    # Heavy rainfall increases rolling resistance & wiper/defogger loads -> higher emissions
+    assert rainy_ef > base_ef
+    
+    # Metro on dedicated track has 0 rain rolling friction penalty
+    metro_base = calculate_arai_emission_factor("Metro", 35.0)
+    metro_rain = calculate_weather_adjusted_emission_factor("Metro", 35.0, rainfall_mm=10.0)
+    assert metro_base == metro_rain
+
+def test_congestion_emission_penalty():
+    # 10 km commute in Bengaluru traffic: 8 km/h severe gridlock vs 25 km/h optimal urban flow
+    res = calculate_congestion_emission_penalty(distance_km=10.0, actual_speed_kmh=8.0, free_flow_speed_kmh=25.0)
+    assert res["actual_co2_kg"] > res["free_flow_co2_kg"]
+    assert res["excess_congestion_co2_kg"] > 0
+    assert res["congestion_penalty_percentage"] > 0
+
+def test_carbon_offset_impact():
+    # If 10 kg of CO2 is saved
+    offsets = calculate_carbon_offset_impact(10.0)
+    assert offsets["tree_days_equivalent"] > 0
+    assert offsets["fuel_saved_liters"] > 0
+    assert offsets["smartphone_charges_equivalent"] > 0
+
+def test_simulate_commuter_annual_savings():
+    # 20 km daily roundtrip, 5 days a week using Metro
+    sim = simulate_commuter_annual_savings(daily_roundtrip_distance_km=20.0, days_per_week=5, chosen_mode="Metro")
+    assert sim["annual_co2_saved_kg"] > 500.0  # Massive annual carbon reduction
+    assert sim["annual_cost_saved_inr"] > 10000.0 # Significant financial savings vs car
+    assert sim["annual_tree_years_equivalent"] > 20.0
+

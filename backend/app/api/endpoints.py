@@ -9,7 +9,10 @@ from app.services.emission_calculator import (
     calculate_modal_emissions_comparison,
     generate_speed_emission_curve,
     compute_all_routes_and_scores,
-    haversine_distance_km
+    haversine_distance_km,
+    calculate_congestion_emission_penalty,
+    simulate_commuter_annual_savings,
+    calculate_carbon_offset_impact
 )
 from app.models.xgboost_predictor import (
     predict_travel_time,
@@ -275,6 +278,7 @@ class ModalEmissionDetail(BaseModel):
     co2_emissions_kg: float
     savings_vs_ice_car_kg: float
     savings_percentage: float
+    ecological_offset: Optional[Dict[str, float]] = None
 
 
 class EmissionCalculationResponse(BaseModel):
@@ -310,6 +314,87 @@ async def calculate_emissions(request: EmissionCalculationRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error calculating ARAI emissions: {str(e)}")
+
+
+class CongestionPenaltyRequest(BaseModel):
+    distance_km: float = Field(..., gt=0.0, description="Trip distance in km")
+    actual_speed_kmh: float = Field(..., gt=0.0, le=140.0, description="Congested traffic speed in km/h")
+    free_flow_speed_kmh: Optional[float] = Field(25.0, gt=0.0, le=140.0, description="Optimal free-flow speed in km/h")
+
+
+class CongestionPenaltyResponse(BaseModel):
+    status: str
+    distance_km: float
+    actual_speed_kmh: float
+    free_flow_speed_kmh: float
+    actual_co2_kg: float
+    free_flow_co2_kg: float
+    excess_congestion_co2_kg: float
+    congestion_penalty_percentage: float
+
+
+@router.post("/congestion-emission-penalty", response_model=CongestionPenaltyResponse)
+async def get_congestion_penalty(request: CongestionPenaltyRequest):
+    """
+    Quantifies the excess CO2 emitted purely due to traffic gridlock and stop-and-go congestion.
+    Fulfills Form 2 Milestone (01-11-2026 to 25-11-2026).
+    """
+    try:
+        res = calculate_congestion_emission_penalty(
+            distance_km=request.distance_km,
+            actual_speed_kmh=request.actual_speed_kmh,
+            free_flow_speed_kmh=request.free_flow_speed_kmh or 25.0
+        )
+        return {
+            "status": "success",
+            **res
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calculating congestion emission penalty: {str(e)}")
+
+
+class CommuterProjectionRequest(BaseModel):
+    daily_roundtrip_km: float = Field(..., gt=0.0, le=300.0, description="Daily roundtrip commute in km")
+    working_days_per_week: Optional[int] = Field(5, ge=1, le=7, description="Number of commute days per week")
+    chosen_mode: Optional[str] = Field("Metro", description="Target transit mode: Metro, Bus, or EV")
+    car_speed_kmh: Optional[float] = Field(25.0, gt=0.0, le=120.0, description="Baseline private car speed")
+
+
+class CommuterProjectionResponse(BaseModel):
+    status: str
+    chosen_mode: str
+    daily_roundtrip_km: float
+    working_days_per_week: int
+    annual_working_days: int
+    weekly_co2_saved_kg: float
+    monthly_co2_saved_kg: float
+    annual_co2_saved_kg: float
+    annual_cost_saved_inr: float
+    annual_tree_years_equivalent: float
+    annual_fuel_liters_saved: float
+
+
+@router.post("/commuter-emissions-projection", response_model=CommuterProjectionResponse)
+async def commuter_emissions_projection(request: CommuterProjectionRequest):
+    """
+    Simulates cumulative weekly, monthly, and annual carbon and financial savings
+    for a commuter choosing sustainable transit over a private ICE car in Bengaluru.
+    Fulfills Form 2 Milestone (01-11-2026 to 25-11-2026).
+    """
+    try:
+        sim = simulate_commuter_annual_savings(
+            daily_roundtrip_distance_km=request.daily_roundtrip_km,
+            days_per_week=request.working_days_per_week or 5,
+            chosen_mode=request.chosen_mode or "Metro",
+            car_speed_kmh=request.car_speed_kmh or 25.0
+        )
+        return {
+            "status": "success",
+            **sim
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error simulating commuter projection: {str(e)}")
+
 
 
 

@@ -89,3 +89,32 @@ def test_calculate_emissions_endpoint():
     assert comp_map["Metro"]["savings_vs_ice_car_kg"] > 0
     assert comp_map["Metro"]["savings_percentage"] > 90.0
 
+def test_congestion_emission_penalty_endpoint():
+    payload = {
+        "distance_km": 15.0,
+        "actual_speed_kmh": 8.0,
+        "free_flow_speed_kmh": 25.0
+    }
+    response = client.post("/api/v1/congestion-emission-penalty", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["actual_co2_kg"] > data["free_flow_co2_kg"]
+    assert data["excess_congestion_co2_kg"] > 0
+    assert data["congestion_penalty_percentage"] > 0
+
+def test_commuter_emissions_projection_endpoint():
+    payload = {
+        "daily_roundtrip_km": 25.0,
+        "working_days_per_week": 5,
+        "chosen_mode": "Metro"
+    }
+    response = client.post("/api/v1/commuter-emissions-projection", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["annual_co2_saved_kg"] > 0
+    assert data["annual_cost_saved_inr"] > 0
+    assert data["annual_tree_years_equivalent"] > 0
+
+
