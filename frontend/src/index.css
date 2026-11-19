@@ -1,8 +1,89 @@
+
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+/* Global reset */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background-color: #f8fafc;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f5f8f6;
+  color: #172b25;
+  font-family: Inter, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Leaflet map */
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  font-family: inherit;
+  z-index: 1;
+}
+
+.leaflet-control-zoom a {
+  color: #173b30 !important;
+}
+
+/* Selection */
+
+::selection {
+  background: #ccebd9;
+  color: #103b32;
+}
+
+/* Scrollbar */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f2;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #bdcec3;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #829b8b;
 }
