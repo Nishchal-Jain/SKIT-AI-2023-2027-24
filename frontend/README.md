@@ -2,87 +2,116 @@
 
 ## 📌 Overview
 
-The frontend of the **AI-Based Smart Sustainable Transport Optimization System** is built with React and Vite. It provides an interactive interface for entering travel locations, viewing a map, comparing transportation modes, and displaying explainable AI visualizations.
+The **AI-Based Smart Sustainable Transport Optimization System** is a web application designed to support sustainable urban mobility through route planning, multimodal transportation comparisons, and explainable AI visualizations.
 
-The frontend is designed to support sustainable urban mobility by helping users explore travel time, estimated cost, and carbon emission comparisons.
+The frontend is developed using **React and Vite**. It provides an interactive interface where users can enter source and destination locations, view a map, request route recommendations, compare transportation alternatives, and explore factors that may influence predicted travel time.
 
-**Development status:** The UI components and location autocomplete are implemented. Complete integration with real route calculations, machine learning predictions, weather data, and dynamic SHAP explanations is still under development.
+The system aims to help users make more informed transportation decisions by considering travel duration, estimated cost, and carbon emissions.
+
+**Current development status — 29 October 2026:** The frontend components, location autocomplete, routing form, interactive map, transportation comparison interface, and SHAP visualization component are present in the application. The frontend has been updated, synchronized with the latest `main` branch, and verified with a successful Vite production build. Complete integration of route-specific predictions, live traffic and weather data, and dynamic SHAP explanations remains in development.
 
 ## ✨ Features
 
 ### 1. Location Autocomplete
 
+The routing form provides location search and selection functionality.
+
 - Suggest locations as the user types.
-- Search for locations using OpenStreetMap Nominatim.
+- Search using OpenStreetMap Nominatim.
 - Use Photon as a fallback location search service.
 - Display matching locations in a dropdown.
-- Store the selected location's latitude and longitude.
-- Use Fuse.js to rank close text matches among the locations returned by the geocoding services.
-- Validate that both source and destination locations are selected before submitting the form.
+- Store selected latitude and longitude coordinates.
+- Use Fuse.js to rank close text matches among returned results.
+- Validate that both source and destination locations have been selected before submitting a route request.
 
-**Note:** Fuzzy matching helps identify similar location names but does not guarantee correction of every spelling mistake.
+Fuzzy matching improves the ranking of similar location names but does not guarantee correction of every spelling mistake.
 
 ### 2. Route Planning Form
 
-The routing form allows users to enter:
+The routing form allows users to select a source and destination and request a route recommendation.
 
-- Source location
-- Destination location
+Key functionality includes:
 
-The form includes loading indicators, input validation, error messages, and a **Calculate Route & Emissions** button.
+- Source and destination selection.
+- Validation of selected locations.
+- Validation that the source and destination differ.
+- Loading indicators during route requests.
+- Error handling for unsuccessful requests.
+- Submission of selected coordinates and the intended departure time to the backend.
+- Display of the returned route result.
 
-The selected coordinates are submitted to the backend route-recommendation endpoint.
+The form uses the Fetch API to communicate with the backend route-recommendation endpoint.
 
 ### 3. Interactive Map
 
-The map component uses:
+The map component is implemented using **React Leaflet and Leaflet**, with OpenStreetMap providing the map tiles.
 
-- **Leaflet** for interactive map functionality
-- **OpenStreetMap** for map tiles
+The map interface provides a geographic view for the transport planning application and serves as the visualization layer for route-related information.
 
-The component provides map visualization and can be extended to display dynamically calculated routes.
+The map component has been updated as part of the latest frontend development work. Complete route visualization depends on the availability and format of route data returned by the backend.
 
-### 4. Multimodal Transport Comparison
+### 4. Multimodal Transportation Comparison
 
-The comparison interface presents four transportation modes:
+The comparison interface presents four transportation alternatives:
 
 - Metro Rail
 - Public Bus
-- Electric Vehicle
+- Electric Vehicle (EV)
 - Internal Combustion Engine (ICE) Car
 
-The UI displays estimated travel duration, CO₂ emissions, and travel cost.
+The interface is intended to compare transportation alternatives using:
 
-The current comparison values are demonstration values and should not be treated as live route-specific predictions.
+- Estimated travel duration.
+- Estimated travel cost.
+- Estimated carbon dioxide emissions.
+
+**Current limitation:** Demonstration values are not equivalent to live, route-specific predictions. Complete integration with backend calculations is still required for reliable dynamic comparisons.
 
 ### 5. Explainable AI (SHAP)
 
-The SHAP visualization component displays factors intended to explain travel-time predictions, including:
+The SHAP visualization component is designed to explain factors influencing travel-time predictions.
 
-- Base travel time
-- Peak-hour traffic impact
-- Rainfall and weather impact
+The visualization includes factors such as:
 
-The current visualization uses demonstration values rather than dynamically generated SHAP output from a live model prediction.
+- Base travel time.
+- Peak-hour traffic impact.
+- Rainfall and weather impact.
+
+The component provides an interface for presenting prediction explanations. The current demonstration values should not be interpreted as genuine SHAP output from a live machine learning prediction.
+
+Future integration will connect the visualization to actual model predictions and their corresponding feature contributions.
 
 ### 6. Responsive User Interface
 
-The frontend uses reusable React components and CSS styling to organize the route form, map, comparison cards, and explainability section.
+The application uses reusable React components and CSS styling to organize the user interface.
+
+The main dashboard brings together:
+
+- Header and application branding.
+- Route planning form.
+- Interactive map.
+- Transportation comparison interface.
+- SHAP visualization.
+
+The frontend is structured to support future improvements in accessibility, responsiveness, usability, and backend integration.
 
 ## 🛠️ Technology Stack
 
 | Technology | Purpose |
 |---|---|
 | React | Component-based UI development |
-| JavaScript (JSX) | Frontend application logic |
-| Vite | Development server and build tool |
+| JavaScript and JSX | Frontend logic and component structure |
+| Vite | Development server and production build |
 | CSS | Layout and styling |
-| Leaflet | Interactive maps |
+| Tailwind CSS | Utility-based styling where configured |
+| React Leaflet | React integration for interactive maps |
+| Leaflet | Map rendering and interactions |
 | OpenStreetMap | Map tiles and geographic data |
-| Nominatim | Location search and geocoding |
+| Nominatim | Primary location search |
 | Photon | Fallback location search |
 | Fuse.js | Fuzzy matching and ranking of location suggestions |
-| Fetch API | HTTP requests to external services and the backend |
+| Fetch API | HTTP communication with external services and the backend |
+| FastAPI | Backend API framework |
 
 ## 📂 Project Structure
 
@@ -114,24 +143,25 @@ frontend/
 
 ## ⚙️ Prerequisites
 
-Install the following:
+Install:
 
 - Node.js
 - npm
-- Git (optional)
+- Git (for version control and collaboration)
 
 Verify the installations:
 
 ```bash
 node -v
 npm -v
+git --version
 ```
 
 ## 🚀 Installation and Setup
 
 ### Step 1: Open the frontend directory
 
-From the project root:
+From the repository root:
 
 ```bash
 cd frontend
@@ -143,7 +173,7 @@ cd frontend
 npm install
 ```
 
-Install Fuse.js if it is not already listed in the project dependencies:
+Fuse.js is already listed in the project's dependencies. If it is missing from your local installation or dependency configuration, install it with:
 
 ```bash
 npm install fuse.js
@@ -155,23 +185,35 @@ npm install fuse.js
 npm run dev
 ```
 
-Vite will display a local development URL. It is usually:
+Vite displays the local development URL, usually:
 
 ```text
 http://localhost:5173/
 ```
 
-Open the displayed URL in your browser to view the frontend.
+Open the displayed URL in your browser.
+
+### Step 4: Build for production
+
+```bash
+npm run build
+```
+
+### Step 5: Preview the production build
+
+```bash
+npm run preview
+```
 
 ## 🔌 Backend Integration
 
-The frontend sends route requests to:
+The routing form sends requests to the backend route-recommendation endpoint:
 
 ```text
 POST http://localhost:8000/api/v1/recommend-route
 ```
 
-The current request format used by the routing form is:
+The request uses the following structure:
 
 ```json
 {
@@ -183,110 +225,132 @@ The current request format used by the routing form is:
     "lat": 12.9352,
     "lng": 77.6245
   },
-  "intended_departure": "2026-10-21T12:00:00.000Z"
+  "intended_departure": "2026-10-29T12:00:00.000Z"
 }
 ```
 
-The coordinates and departure time above are examples. The application submits the actual selected coordinates and current timestamp.
+The coordinates and timestamp above are examples. The application submits the coordinates selected by the user and the current departure timestamp.
 
-**Important:** Confirm that the backend accepts this exact request schema before testing the route endpoint. The current backend may return sample route results.
+**Important:** Verify that the running backend accepts this request schema and that its response matches the format expected by the frontend. The example does not establish that the endpoint is currently returning production-ready route predictions.
 
-To view the frontend alone, you can start Vite without starting the Python backend. Features that require API responses will need the backend to be running.
+To run the frontend independently, start Vite without the Python backend. However, operations requiring backend responses will not work fully unless the backend is running and accessible.
 
-## 🗺️ Location Search and Autocomplete
+## 🗺️ Location Search and Autocomplete Workflow
 
 The routing form uses two public geocoding services:
 
 - **Nominatim:** Primary location search.
-- **Photon:** Fallback search when the primary service returns no results or fails.
+- **Photon:** Fallback location search.
 
-Fuse.js ranks close text matches among the returned location results.
+Fuse.js ranks similar text matches among the locations returned by the geocoding services.
 
-### Autocomplete workflow
+The workflow is:
 
 1. The user types a location name.
 2. The frontend waits briefly before searching.
 3. The geocoding service returns matching locations.
-4. The frontend ranks the returned locations.
+4. Fuse.js ranks close text matches.
 5. The user selects a suggestion.
-6. The selected coordinates are stored for route submission.
+6. The frontend stores the selected coordinates.
+7. The coordinates are submitted when the user requests a route.
 
-### Usage considerations
+Public geocoding services have usage policies and rate limits. Production deployments should follow the relevant service policies and consider caching, request throttling, and suitable error handling.
 
-Public geocoding services have usage policies and rate limits. For production deployments, review the relevant service policies and consider routing requests through a backend service with suitable caching and rate limiting.
+## 🧪 Testing and Validation
 
-## 🏗️ Production Build
+### Verified on 29 October 2026
 
-Create an optimized frontend build:
+- The frontend production build completed successfully using `npm run build`.
+- Vite transformed 1,947 modules.
+- The generated production assets were written to the `dist/` directory.
+
+Build command:
 
 ```bash
 npm run build
 ```
 
-The generated files are placed in the `dist/` directory.
-
-Preview the production build locally:
-
-```bash
-npm run preview
-```
-
-## 🔍 Code Quality
-
-Run the configured ESLint checks:
-
-```bash
-npm run lint
-```
-
-## 🧪 Testing Checklist
+### Recommended functional testing
 
 - [ ] Frontend starts without errors.
-- [ ] Main dashboard renders correctly.
-- [ ] Header and UI components display correctly.
+- [ ] Dashboard and header render correctly.
 - [ ] Source location autocomplete works.
 - [ ] Destination location autocomplete works.
-- [ ] Fallback location search works when needed.
+- [ ] Fallback geocoding works when needed.
 - [ ] Fuzzy matching ranks similar location names.
-- [ ] Users must select both locations before submission.
-- [ ] Selected coordinates are submitted to the backend.
-- [ ] Backend errors are displayed appropriately.
-- [ ] Map visualization works.
-- [ ] Transport comparison cards display correctly.
+- [ ] Both locations must be selected before submission.
+- [ ] Identical source and destination coordinates are rejected.
+- [ ] Selected coordinates are submitted correctly.
+- [ ] Loading and backend error states display appropriately.
+- [ ] Map visualization renders correctly.
+- [ ] Route data is displayed correctly when returned by the backend.
+- [ ] Transportation comparison cards render correctly.
 - [ ] SHAP visualization renders correctly.
-- [ ] Production build completes successfully.
+- [ ] `npm run build` completes successfully.
+- [ ] `npm run lint` completes successfully.
+
+The production build was verified. The remaining checklist items should be tested individually; successful compilation alone does not prove that every feature works end to end.
 
 ## 🚧 Current Limitations
 
 - Fuzzy matching cannot guarantee correction of every misspelled location.
 - Public geocoding services may be unavailable or rate-limited.
-- The routing form depends on the backend request schema matching the submitted coordinates.
-- The backend currently returns sample route results.
-- Transport comparison cards are not yet fully connected to live route calculations.
-- The SHAP visualization is not yet connected to actual model explanations.
-- Real-time traffic, weather, route-specific emissions, and machine learning predictions require complete backend integration.
+- Backend integration depends on matching request and response schemas.
+- Complete live route calculations and route-specific predictions require further integration.
+- Transportation comparison values are not yet fully connected to live route calculations.
+- SHAP visualization values are not yet connected to genuine model explanations.
+- Live traffic, weather, route-specific emissions, and cost estimates require validated backend integration.
+- A successful production build does not establish the accuracy of machine learning predictions or emissions estimates.
 
 ## 🔮 Future Enhancements
 
 - Improve spelling correction and location search ranking.
-- Display selected routes on the map.
-- Connect live route calculations to transport comparisons.
+- Display calculated routes on the map.
+- Connect route calculations to the transportation comparison interface.
 - Integrate traffic and weather information.
-- Calculate and validate transport-specific emissions and costs.
+- Validate transportation-specific emissions and cost calculations.
 - Display actual machine learning predictions.
 - Connect SHAP visualizations to genuine model output.
 - Improve accessibility, responsiveness, and error handling.
 - Add automated frontend tests.
+- Improve API error handling, loading states, and integration testing.
+
+## 🔄 GitHub Development Workflow
+
+The frontend is maintained on the `frontend-dev` branch, while the shared integration branch is `main`.
+
+The team's workflow is:
+
+1. Fetch the latest repository changes.
+2. Synchronize `frontend-dev` with `main` when required.
+3. Implement and test frontend changes.
+4. Commit and push changes to `frontend-dev`.
+5. Create a Pull Request from `frontend-dev` into `main`.
+6. Review and merge the Pull Request.
+7. Synchronize `frontend-dev` with the updated `main` before continuing development.
+
+### Frontend work completed on 29 October 2026
+
+- Updated the frontend application and routing-related components.
+- Synchronized the frontend branch with previously merged backend changes.
+- Resolved and completed the Git merge workflow.
+- Verified the Vite production build.
+- Created and merged Pull Request #9, titled **feat(frontend): improve routing interface and map integration**.
+- Synchronized `frontend-dev` with the updated `main` after the PR merge.
+- Confirmed that `frontend-dev` and `main` were aligned on GitHub.
+
+The latest branch status showed `frontend-dev` with zero commits ahead of or behind `main`. The `backend-dev` branch remains separate and is maintained through its own workflow.
 
 ## 🎯 Project Goal
 
-To provide an intuitive interface for exploring transportation alternatives and supporting more sustainable urban mobility decisions through route information, transport comparisons, and explainable AI.
+To provide an intuitive interface for exploring transportation alternatives and supporting more sustainable urban mobility decisions through route information, transportation comparisons, and explainable AI.
 
 ---
 
 **Project:** AI-Based Smart Sustainable Transport Optimization System  
 **Frontend:** React + Vite  
-**Mapping:** Leaflet + OpenStreetMap  
+**Mapping:** React Leaflet + OpenStreetMap  
 **Geocoding:** Nominatim + Photon  
 **Autocomplete Matching:** Fuse.js  
-**Backend:** Python + FastAPI
+**Backend:** Python + FastAPI  
+**Version Control:** Git + GitHub

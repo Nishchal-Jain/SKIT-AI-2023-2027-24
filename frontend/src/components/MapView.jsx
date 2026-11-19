@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import {
   MapContainer,
@@ -8,7 +9,7 @@ import {
   useMap,
 } from 'react-leaflet';
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { MapPin, Navigation, LoaderCircle, AlertCircle } from 'lucide-react';
 
 const DEFAULT_CENTER = [12.9716, 77.5946];
 
@@ -60,19 +61,22 @@ export default function MapView({ routeInfo }) {
         return;
       }
 
-      const coordinatesAreValid = [...originPosition, ...destinationPosition]
-        .every(Number.isFinite);
+      const coordinatesAreValid = [
+        ...originPosition,
+        ...destinationPosition,
+      ].every(Number.isFinite);
 
       if (!coordinatesAreValid) {
         setLoadingRoute(false);
-        setRouteError('The selected locations have invalid coordinates.');
+        setRouteError(
+          'The selected locations have invalid coordinates.'
+        );
         return;
       }
 
       setLoadingRoute(true);
 
       try {
-        // OSRM uses longitude,latitude order.
         const start = `${originPosition[1]},${originPosition[0]}`;
         const end = `${destinationPosition[1]},${destinationPosition[0]}`;
 
@@ -83,16 +87,22 @@ export default function MapView({ routeInfo }) {
         const response = await fetch(url);
 
         if (!response.ok) {
-          throw new Error(`Routing service returned ${response.status}.`);
+          throw new Error(
+            `Routing service returned ${response.status}.`
+          );
         }
 
         const data = await response.json();
 
-        if (data.code !== 'Ok' || !data.routes?.[0]?.geometry?.coordinates) {
-          throw new Error('No drivable route was found between these locations.');
+        if (
+          data.code !== 'Ok' ||
+          !data.routes?.[0]?.geometry?.coordinates
+        ) {
+          throw new Error(
+            'No drivable route was found between these locations.'
+          );
         }
 
-        // GeoJSON coordinates are [longitude, latitude].
         const positions = data.routes[0].geometry.coordinates.map(
           ([lng, lat]) => [lat, lng]
         );
@@ -103,7 +113,8 @@ export default function MapView({ routeInfo }) {
       } catch (error) {
         if (!cancelled) {
           setRouteError(
-            error.message || 'Unable to load the road route. Please try again.'
+            error.message ||
+            'Unable to load the road route. Please try again.'
           );
         }
       } finally {
@@ -131,10 +142,34 @@ export default function MapView({ routeInfo }) {
       : [originPosition, destinationPosition].filter(Boolean);
 
   return (
-    <div className="h-[500px] w-full rounded-xl overflow-hidden shadow-sm border border-slate-200 relative">
+    <div className="map-view-shell">
+
+      <div className="map-top-overlay">
+        <div className="map-route-label">
+          <div className="map-route-icon">
+            <Navigation size={17} />
+          </div>
+
+          <div>
+            <strong>Live Route View</strong>
+            <span>
+              {origin && destination
+                ? 'Selected journey'
+                : 'Explore the city map'}
+            </span>
+          </div>
+        </div>
+
+        <span className="map-provider-badge">
+          <MapPin size={13} />
+          OpenStreetMap
+        </span>
+      </div>
+
       <MapContainer
         center={DEFAULT_CENTER}
         zoom={12}
+        scrollWheelZoom={true}
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
@@ -144,7 +179,9 @@ export default function MapView({ routeInfo }) {
 
         {originPosition && (
           <Marker position={originPosition}>
-            <Popup>Origin: {origin.name || 'Selected starting point'}</Popup>
+            <Popup>
+              Origin: {origin.name || 'Selected starting point'}
+            </Popup>
           </Marker>
         )}
 
@@ -159,22 +196,50 @@ export default function MapView({ routeInfo }) {
         {routeCoordinates.length > 0 && (
           <Polyline
             positions={routeCoordinates}
-            pathOptions={{ color: '#16a34a', weight: 5, opacity: 0.85 }}
+            pathOptions={{
+              color: '#07845d',
+              weight: 6,
+              opacity: 0.9,
+              lineCap: 'round',
+              lineJoin: 'round',
+            }}
           />
         )}
 
         <RouteBounds positions={boundsPositions} />
       </MapContainer>
 
-      {(loadingRoute || routeError) && (
-        <div
-          role="status"
-          className="absolute top-3 left-3 z-[1000] max-w-sm rounded-lg bg-white px-3 py-2 text-sm shadow-md"
-        >
-          {loadingRoute && <p>Loading road route...</p>}
-          {routeError && <p className="text-red-600">{routeError}</p>}
+      {loadingRoute && (
+        <div className="map-message map-loading" role="status">
+          <LoaderCircle size={17} className="map-spinner" />
+          Loading road route...
         </div>
       )}
+
+      {routeError && (
+        <div className="map-message map-error" role="alert">
+          <AlertCircle size={17} />
+          {routeError}
+        </div>
+      )}
+
+      {!origin && !destination && (
+        <div className="map-empty-hint">
+          <div className="map-empty-icon">
+            <MapPin size={23} />
+          </div>
+          <strong>Ready to explore?</strong>
+          <span>Enter your starting point and destination to view your route.</span>
+        </div>
+      )}
+
+      {origin && destination && !loadingRoute && !routeError &&
+        routeCoordinates.length > 0 && (
+          <div className="map-success-indicator">
+            <span></span>
+            Route displayed
+          </div>
+        )}
     </div>
   );
 }
