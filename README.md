@@ -404,6 +404,14 @@ def generate_shap_explanation(model, feature_matrix):
 }
 ```
 
+### Sprint 2 ARAI Emissions & GTFS Spatial Endpoints
+* **`POST /api/v1/calculate-emissions`**: Computes 4-mode ARAI speed-dependent $CO_2$ comparisons, ecological offsets, and the 10–80 km/h speed-emission curve.
+* **`POST /api/v1/congestion-emission-penalty`**: Quantifies excess $CO_2$ from stop-and-go congestion vs. free-flow urban speed.
+* **`POST /api/v1/commuter-emissions-projection`**: Simulates weekly, monthly, and annual carbon and financial savings for Metro/Bus/EV commuters.
+* **`GET /api/v1/arai-profiles`** & **`POST /api/v1/vehicle-profile-emissions`**: Evaluates granular BS-VI car classes (`petrol_small`, `petrol_sedan_suv`, `diesel_car`, `cng_car`, `hybrid_car`), EV classes (`ev_two_wheeler`, `ev_hatchback`, `ev_sedan_suv`), BMTC buses (`bmtc_non_ac`, `bmtc_volvo_ac`, `bmtc_ebus`), and `bmrcl_metro` across regional grid carbon intensities (`india_cea_national`, `karnataka_grid`, `rooftop_solar`).
+* **`GET /api/v1/transit-stops/nearest`**: Resolves nearest Namma Metro & BMTC stops using `cKDTree` spatial snapping (`<2ms`).
+* **`POST /api/v1/door-to-door-emissions`**: Calculates end-to-end first-mile + trunk + last-mile ARAI emissions using GTFS coordinates.
+
 ---
 
 ## 14. 🖥️ Frontend Architecture & React Component Tree

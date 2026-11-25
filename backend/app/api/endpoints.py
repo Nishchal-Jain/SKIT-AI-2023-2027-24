@@ -17,6 +17,8 @@ from app.services.emission_calculator import (
     ARAI_VEHICLE_PROFILES,
     GRID_CARBON_INTENSITY
 )
+from app.services.gtfs_parser import find_nearest_transit_stops
+from app.services.routing_service import calculate_door_to_door_multimodal_emissions
 from app.models.xgboost_predictor import (
     predict_travel_time,
     predict_weather_adjusted_travel_time
@@ -463,6 +465,60 @@ async def get_vehicle_profile_emissions(request: VehicleProfileRequest):
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error calculating profiled emissions: {str(e)}")
+
+
+@router.get("/transit-stops/nearest")
+async def get_nearest_transit_stops(lat: float, lng: float):
+    """
+    Resolves the nearest Namma Metro (BMRCL) station and BMTC Bus stop using
+    cKDTree spatial snapping in <2ms.
+    """
+    if not (-90.0 <= lat <= 90.0) or not (-180.0 <= lng <= 180.0):
+        raise HTTPException(status_code=400, detail="Invalid GPS coordinates.")
+    try:
+        res = find_nearest_transit_stops(lat, lng)
+        return {"status": "success", **res}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Spatial snapping error: {str(e)}")
+
+
+class DoorToDoorEmissionRequest(BaseModel):
+    origin: Coordinate
+    destination: Coordinate
+    car_speed_kmh: Optional[float] = Field(22.0, gt=0.0, le=120.0, description="Estimated urban road speed")
+    preferred_access_mode: Optional[str] = Field(
+        "auto",
+        description="First/last-mile mode: auto (smart walk<=0.8km else CNG auto), walk, auto_rickshaw_cng, ev_auto, feeder_bus"
+    )
+    car_profile: Optional[str] = Field("petrol_small", description="Baseline ICE car sub-class")
+    ev_profile: Optional[str] = Field("ev_hatchback", description="EV sub-class")
+    grid_region: Optional[str] = Field("india_cea_national", description="Grid carbon intensity region")
+
+
+@router.post("/door-to-door-emissions")
+async def calculate_door_to_door_emissions(request: DoorToDoorEmissionRequest):
+    """
+    Computes complete first-mile + trunk + last-mile ARAI emissions across Metro,
+    Bus, EV, and ICE Car using BMRCL & BMTC GTFS coordinates.
+    """
+    try:
+        res = calculate_door_to_door_multimodal_emissions(
+            origin_lat=request.origin.lat,
+            origin_lon=request.origin.lng,
+            dest_lat=request.destination.lat,
+            dest_lon=request.destination.lng,
+            car_speed_kmh=request.car_speed_kmh or 22.0,
+            preferred_access_mode=request.preferred_access_mode or "auto",
+            car_profile=request.car_profile or "petrol_small",
+            ev_profile=request.ev_profile or "ev_hatchback",
+            grid_region=request.grid_region or "india_cea_national",
+        )
+        return {"status": "success", **res}
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Door-to-door emission calculation error: {str(e)}")
+
 
 
 
