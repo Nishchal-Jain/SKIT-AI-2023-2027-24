@@ -118,3 +118,59 @@ def test_commuter_emissions_projection_endpoint():
     assert data["annual_tree_years_equivalent"] > 0
 
 
+def test_list_arai_profiles_endpoint():
+    response = client.get("/api/v1/arai-profiles")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert "petrol_small" in data["vehicle_profiles"]
+    assert "ev_hatchback" in data["vehicle_profiles"]
+    assert "bmtc_ebus" in data["vehicle_profiles"]
+    assert "bmrcl_metro" in data["vehicle_profiles"]
+    assert "karnataka_grid" in data["grid_regions_kg_co2_per_kwh"]
+
+
+def test_vehicle_profile_emissions_endpoint():
+    payload = {
+        "profile_id": "bmtc_ebus",
+        "distance_km": 12.0,
+        "grid_region": "karnataka_grid",
+        "occupancy_passengers": 45
+    }
+    response = client.post("/api/v1/vehicle-profile-emissions", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["mode"] == "Bus"
+    assert data["total_co2_kg"] > 0
+    assert len(data["modeling_notes"]) >= 1
+
+
+def test_nearest_transit_stops_endpoint():
+    response = client.get("/api/v1/transit-stops/nearest?lat=12.9756&lng=77.6066")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["nearest_metro_station"]["access_distance_km"] < 1.0
+    assert data["indexed_bus_stops"] > 100
+
+
+def test_door_to_door_emissions_endpoint():
+    payload = {
+        "origin": {"lat": 12.9784, "lng": 77.6408},
+        "destination": {"lat": 12.9352, "lng": 77.6245},
+        "car_speed_kmh": 18.0,
+        "preferred_access_mode": "feeder_bus",
+        "grid_region": "karnataka_grid"
+    }
+    response = client.post("/api/v1/door-to-door-emissions", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert len(data["door_to_door_comparison"]) == 4
+    modes = {m["mode"]: m for m in data["door_to_door_comparison"]}
+    assert modes["Metro"]["co2_saved_vs_car_kg"] > 0
+
+
+
+
