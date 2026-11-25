@@ -12,7 +12,10 @@ from app.services.emission_calculator import (
     haversine_distance_km,
     calculate_congestion_emission_penalty,
     simulate_commuter_annual_savings,
-    calculate_carbon_offset_impact
+    calculate_carbon_offset_impact,
+    calculate_profiled_emission_factor,
+    ARAI_VEHICLE_PROFILES,
+    GRID_CARBON_INTENSITY
 )
 from app.models.xgboost_predictor import (
     predict_travel_time,
@@ -394,6 +397,73 @@ async def commuter_emissions_projection(request: CommuterProjectionRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error simulating commuter projection: {str(e)}")
+
+
+class VehicleProfileRequest(BaseModel):
+    profile_id: str = Field(..., description="ARAI sub-class identifier (e.g., petrol_small, ev_hatchback, bmtc_ebus, bmrcl_metro)")
+    distance_km: float = Field(..., gt=0.0, le=500.0, description="Trip distance in km")
+    speed_kmh: Optional[float] = Field(25.0, gt=0.0, le=140.0, description="Travel speed in km/h")
+    grid_region: Optional[str] = Field("india_cea_national", description="Grid intensity profile: india_cea_national, karnataka_grid, rooftop_solar")
+    occupancy_passengers: Optional[int] = Field(40, ge=1, le=120, description="Bus passenger count for per-rider attribution")
+    occupancy_ratio: Optional[float] = Field(1.0, ge=0.25, le=2.0, description="Metro train load factor multiplier")
+    rainfall_mm: Optional[float] = Field(0.0, ge=0.0, le=200.0, description="Ambient rainfall in mm/hr")
+    temperature_c: Optional[float] = Field(25.0, ge=-10.0, le=55.0, description="Ambient temperature in Celsius")
+    cold_start: Optional[bool] = Field(False, description="Apply catalytic warm-up penalty for short cold-engine trips")
+
+
+class VehicleProfileResponse(BaseModel):
+    status: str
+    profile_id: str
+    label: str
+    mode: str
+    grid_region: str
+    distance_km: float
+    speed_kmh: float
+    base_emission_factor_g_km: float
+    weather_adjusted_emission_factor_g_km: float
+    total_co2_kg: float
+    ecological_offset_vs_sedan: Dict[str, float]
+    modeling_notes: List[str]
+
+
+@router.get("/arai-profiles")
+async def list_arai_profiles():
+    """
+    Lists supported ARAI BS-VI vehicle sub-classes, transit fleet types,
+    and regional grid carbon intensity profiles.
+    """
+    return {
+        "status": "success",
+        "vehicle_profiles": {k: {"mode": v["mode"], "label": v["label"]} for k, v in ARAI_VEHICLE_PROFILES.items()},
+        "grid_regions_kg_co2_per_kwh": GRID_CARBON_INTENSITY
+    }
+
+
+@router.post("/vehicle-profile-emissions", response_model=VehicleProfileResponse)
+async def get_vehicle_profile_emissions(request: VehicleProfileRequest):
+    """
+    Computes granular ARAI BS-VI / CEA grid-adjusted CO2 emissions for a specific
+    vehicle sub-class, accounting for occupancy, regenerative braking, cold-starts, and weather.
+    Fulfills Form 2 Milestone (01-11-2026 to 25-11-2026).
+    """
+    try:
+        res = calculate_profiled_emission_factor(
+            profile_id=request.profile_id,
+            speed_kmh=request.speed_kmh or 25.0,
+            distance_km=request.distance_km,
+            grid_region=request.grid_region or "india_cea_national",
+            occupancy_passengers=request.occupancy_passengers or 40,
+            occupancy_ratio=request.occupancy_ratio or 1.0,
+            rainfall_mm=request.rainfall_mm or 0.0,
+            temperature_c=request.temperature_c or 25.0,
+            cold_start=bool(request.cold_start)
+        )
+        return {"status": "success", **res}
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calculating profiled emissions: {str(e)}")
+
 
 
 

@@ -12,6 +12,7 @@ from app.services.emission_calculator import (
     calculate_mode_duration,
     calculate_mode_cost,
     compute_all_routes_and_scores,
+    calculate_profiled_emission_factor,
     ARAI_COEFFICIENTS
 )
 
@@ -139,4 +140,31 @@ def test_simulate_commuter_annual_savings():
     assert sim["annual_co2_saved_kg"] > 500.0  # Massive annual carbon reduction
     assert sim["annual_cost_saved_inr"] > 10000.0 # Significant financial savings vs car
     assert sim["annual_tree_years_equivalent"] > 20.0
+
+
+def test_profiled_emission_factors_across_powertrains():
+    # Petrol SUV emits more than Small Petrol, which emits more than CNG and Hybrid
+    suv = calculate_profiled_emission_factor("petrol_sedan_suv", speed_kmh=25.0, distance_km=10.0)
+    small = calculate_profiled_emission_factor("petrol_small", speed_kmh=25.0, distance_km=10.0)
+    cng = calculate_profiled_emission_factor("cng_car", speed_kmh=25.0, distance_km=10.0)
+    hybrid = calculate_profiled_emission_factor("hybrid_car", speed_kmh=25.0, distance_km=10.0)
+    assert suv["total_co2_kg"] > small["total_co2_kg"] > cng["total_co2_kg"] > hybrid["total_co2_kg"]
+
+    # Cold-start short-trip penalty increases emissions for ICE cars
+    warm = calculate_profiled_emission_factor("petrol_small", speed_kmh=20.0, distance_km=3.0, cold_start=False)
+    cold = calculate_profiled_emission_factor("petrol_small", speed_kmh=20.0, distance_km=3.0, cold_start=True)
+    assert cold["base_emission_factor_g_km"] > warm["base_emission_factor_g_km"]
+
+
+def test_ev_grid_intensity_and_bus_occupancy_scaling():
+    ev_coal = calculate_profiled_emission_factor("ev_hatchback", speed_kmh=30.0, distance_km=10.0, grid_region="india_cea_national")
+    ev_kar = calculate_profiled_emission_factor("ev_hatchback", speed_kmh=30.0, distance_km=10.0, grid_region="karnataka_grid")
+    ev_solar = calculate_profiled_emission_factor("ev_hatchback", speed_kmh=30.0, distance_km=10.0, grid_region="rooftop_solar")
+    assert ev_coal["total_co2_kg"] > ev_kar["total_co2_kg"] > ev_solar["total_co2_kg"]
+
+    # Higher bus occupancy lowers per-passenger CO2
+    bus_offpeak = calculate_profiled_emission_factor("bmtc_volvo_ac", distance_km=10.0, occupancy_passengers=15)
+    bus_peak = calculate_profiled_emission_factor("bmtc_volvo_ac", distance_km=10.0, occupancy_passengers=55)
+    assert bus_offpeak["base_emission_factor_g_km"] > bus_peak["base_emission_factor_g_km"]
+
 

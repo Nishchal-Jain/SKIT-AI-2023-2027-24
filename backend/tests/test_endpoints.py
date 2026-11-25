@@ -118,3 +118,32 @@ def test_commuter_emissions_projection_endpoint():
     assert data["annual_tree_years_equivalent"] > 0
 
 
+def test_list_arai_profiles_endpoint():
+    response = client.get("/api/v1/arai-profiles")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert "petrol_small" in data["vehicle_profiles"]
+    assert "ev_hatchback" in data["vehicle_profiles"]
+    assert "bmtc_ebus" in data["vehicle_profiles"]
+    assert "bmrcl_metro" in data["vehicle_profiles"]
+    assert "karnataka_grid" in data["grid_regions_kg_co2_per_kwh"]
+
+
+def test_vehicle_profile_emissions_endpoint():
+    payload = {
+        "profile_id": "bmtc_ebus",
+        "distance_km": 12.0,
+        "grid_region": "karnataka_grid",
+        "occupancy_passengers": 45
+    }
+    response = client.post("/api/v1/vehicle-profile-emissions", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["mode"] == "Bus"
+    assert data["total_co2_kg"] > 0
+    assert len(data["modeling_notes"]) >= 1
+
+
+
